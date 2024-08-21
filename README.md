@@ -12,8 +12,8 @@ This repository contains Terraform configuration files to provision a web infras
 
 1. Clone the repository:
    ```
-   git clone https://github.com/your-username/azure-web-infrastructure.git
-   cd azure-web-infrastructure
+   git clone https://github.com/princewillopah/Web-Infrastructure-Stack-Assessment.git
+   cd Web-Infrastructure-Stack-Assessment
    ```
 
 2. Initialize Terraform:
@@ -49,4 +49,4 @@ To destroy the infrastructure:
 
 ```
    terraform destroy
-```# Web-Infrastructure-Stack-Assessment
+```
