@@ -33,7 +33,7 @@ This repository contains Terraform configuration files to provision a web infras
 ## Components Deployed
 
 - **Virtual Network**: A VNet with address space 10.0.0.0/16
-- **Subnets**: Web tier and database tier subnets
+- **Subnets**: Web tier,  database tier and api agteway subnets
 - **NSGs**: Security groups for web and database tiers
 - **Virtual Machines**: 2 web VMs and 1 database VM
 - **Azure Load Balancer**: A load balancer with an HTTP health probe

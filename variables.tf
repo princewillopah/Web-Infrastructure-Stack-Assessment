@@ -1,13 +1,13 @@
 
 variable "location" {
   type        = string
-  default     = "eastus"
+  default     = "West US"
   description = "Location of the resource group."
 }
 
 variable "resource_group_name" {
   type        = string
-  default     = "Princewill-Web-Infrastructure-Stack-Assessment-RG"
+  default     = "Princewill--Web-Infrastructure-Stack-Assessment-RG"
   description = " Resource for the infrastructure"
 }
 
@@ -37,7 +37,11 @@ variable "db_tier_subnet" {
   default     = "10.0.2.0/24"
   description = "Address prefix for DB tier subnet"
 }
-
+variable "api_gateway_subnet" {
+  type        = string
+  default     = "10.0.3.0/24"
+  description = "Address prefix for app gateway subnet"
+}
 # variable "admin_u" {
 #   type        = string
 #   description = "Admin username for VM."

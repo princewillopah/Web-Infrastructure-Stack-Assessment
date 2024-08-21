@@ -257,6 +257,13 @@ resource "azurerm_public_ip" "app_gateway_public_ip" {
   sku                 = "Standard"
 }
 
+resource "azurerm_subnet" "api_gateway_subnet" {
+  name                 = "app-gateway-subnet"
+  resource_group_name = azurerm_resource_group.RG.name
+  virtual_network_name = azurerm_virtual_network.main-vnet.name
+  address_prefixes     = [var.api_gateway_subnet]
+}
+
 resource "azurerm_application_gateway" "app_gateway" {
   name                = "app-gateway"
   location            = var.location
@@ -275,7 +282,7 @@ resource "azurerm_application_gateway" "app_gateway" {
 
   gateway_ip_configuration {
     name                  = "app_gateway_ip_configuration"
-    subnet_id             = azurerm_subnet.web-tier-subnet.id
+    subnet_id             = azurerm_subnet.api_gateway_subnet.id
   }
 
   frontend_ip_configuration {
@@ -318,12 +325,83 @@ resource "azurerm_application_gateway" "app_gateway" {
 
 }
  
-# # Associate VMs with API Gateway Backend Pool
-# resource "azurerm_application_gateway_backend_address_pool" "api_gateway_backend_pool" {
-#   name                = azurerm_application_gateway.app_gateway.backend_address_pool[0].name
-#   application_gateway_name = azurerm_application_gateway.app_gateway.name
-#   resource_group_name = azurerm_resource_group.RG.name
 
-#   ip_addresses = [azurerm_network_interface.web_tier_nic[0].private_ip_address, azurerm_network_interface.web_tier_nic[1].private_ip_address]
+### ---------------------------
+### SQL Database
+### ---------------------------
+# resource "random_string" "rand" {  #generates random 
+#   length  = 6
+#   special = false
+#   upper   = false
 # }
 
+resource "azurerm_storage_account" "storage_account" {
+  name                     = "ujukwaprincewopah" 
+  location                 = var.location
+  resource_group_name      = azurerm_resource_group.RG.name
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_sql_server" "sql_server" {
+  name                         = "sql-server-storage--account123345" 
+  location                     = var.location
+  resource_group_name          = azurerm_resource_group.RG.name
+  version                      = "12.0"
+  administrator_login          = "4dm1n157r470r"
+  administrator_login_password = "4-v3ry-53cr37-p455w0rd"
+  tags                         = {
+    environment = "production"
+  }
+}
+
+resource "azurerm_sql_database" "sql_database" {
+  name                = "my_sql_database"
+  location            = var.location
+  resource_group_name = azurerm_resource_group.RG.name
+  server_name         = azurerm_sql_server.sql_server.name
+  edition             = "Standard"
+  requested_service_objective_name = "S0"
+  tags                = {
+    environment = "production"
+  }
+  # prevent the possibility of accidental data loss
+  lifecycle {
+    prevent_destroy = false
+  }
+}
+
+
+### -------------------------
+### Azure Key Vault
+### -------------------------
+
+data "azurerm_client_config" "current" {}
+
+# Create an Azure Key Vault
+resource "azurerm_key_vault" "key_vault" {
+  name                        = "my-key-vault"
+  location                    = var.location
+  resource_group_name         = azurerm_resource_group.RG.name
+  tenant_id                   = data.azurerm_client_config.current.tenant_id ## var.tenant_id
+  sku_name                    = "standard"
+
+  # Enable Azure Key Vault to be accessed by Azure Virtual Machines
+  enabled_for_deployment      = true
+  enabled_for_disk_encryption = true
+}
+
+# Store a secret in the Key Vault
+resource "azurerm_key_vault_secret" "sql_server_password" {
+  name         = "sql-server-password"
+  value        = azurerm_sql_server.sql_server.administrator_login_password
+  key_vault_id = azurerm_key_vault.key_vault.id
+
+}
+
+# Store a secret in the Key Vault
+resource "azurerm_key_vault_secret" "sql_database_connection_string" {
+  name      = "sql-database-connection-string"
+  value     = "Server=tcp:${azurerm_sql_server.sql_server.fully_qualified_domain_name};Database=${azurerm_sql_database.sql_database.name};User ID=sqladmin;Password=${azurerm_key_vault_secret.sql_server_password.value};Encrypt=True;"
+  key_vault_id = azurerm_key_vault.key_vault.id
+}
