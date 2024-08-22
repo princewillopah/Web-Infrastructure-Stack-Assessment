@@ -80,7 +80,7 @@ admin_pw              = "your-admin-password"
 ## Components Deployed
 
 - **Virtual Network**: A VNet with address space 10.0.0.0/16
-- **Subnets**: Web tier,  database tier and api agteway subnets
+- **Subnets**: Web tier, database tier and api gateway subnets
 - **NSGs**: Security groups for web and database tiers
 - **Virtual Machines**: 2 web VMs and 1 database VM
 - **Azure Load Balancer**: A load balancer with an HTTP health probe
