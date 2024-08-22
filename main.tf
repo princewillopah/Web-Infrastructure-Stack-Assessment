@@ -471,6 +471,7 @@ resource "azurerm_backup_protected_vm" "web_tier_vm_backup" {
   }
 }
 
+
 # Protect database tier virtual machine with the backup policy
 resource "azurerm_backup_protected_vm" "db_tier_vm_backup" {
   resource_group_name = azurerm_resource_group.RG.name
