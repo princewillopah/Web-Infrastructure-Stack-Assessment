@@ -42,15 +42,25 @@ variable "api_gateway_subnet" {
   default     = "10.0.3.0/24"
   description = "Address prefix for app gateway subnet"
 }
-# variable "admin_u" {
-#   type        = string
-#   description = "Admin username for VM."
-# }
+variable "admin_u" {
+  type        = string
+  description = "Admin username for VM."
+}
 
-# variable "admin_pw" {
-#   type        = string
-#   description = "Admin password for VM."
-# }
+variable "admin_pw" {
+  type        = string
+  description = "Admin password for VM."
+}
+
+variable "administrator_login" {
+  type        = string
+  description = "Admin username for SQL."
+}
+
+variable "administrator_login_pw" {
+  type        = string
+  description = "Admin password for SQL."
+}
 
 
 

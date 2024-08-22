@@ -141,8 +141,8 @@ resource "azurerm_windows_virtual_machine" "web_tier_vm" {
   resource_group_name          = azurerm_resource_group.RG.name
   availability_set_id          = azurerm_availability_set.web_avail_set.id
   size                         = "Standard_D2s_v3"
-  admin_username                = "adminuser" ## var.admin_u
-  admin_password                = "P@ssword123!" ## var.admin_pw
+  admin_username               = var.admin_u ## or "adminuser" for test
+  admin_password               = var.admin_pw ## or "P@ssword123!" 
   network_interface_ids        = [azurerm_network_interface.web_tier_nic[count.index].id]
 
   os_disk {
@@ -166,8 +166,8 @@ resource "azurerm_windows_virtual_machine" "db_tier_vm" {
   resource_group_name          = azurerm_resource_group.RG.name
   network_interface_ids        = [azurerm_network_interface.db_nic.id]
   size                         = "Standard_D4s_v3"
-  admin_username               = "adminuser" ## var.admin_u
-  admin_password               = "P@ssword123!" ## var.admin_pw
+  admin_username               = var.admin_u ## or "adminuser" for test
+  admin_password               = var.admin_pw ## or "P@ssword123!" 
 
   os_disk {
     caching                     = "ReadWrite"
@@ -348,8 +348,8 @@ resource "azurerm_sql_server" "sql_server" {
   location                     = var.location
   resource_group_name          = azurerm_resource_group.RG.name
   version                      = "12.0"
-  administrator_login          = "4dm1n157r470r"
-  administrator_login_password = "4-v3ry-53cr37-p455w0rd"
+  administrator_login          = var.administrator_login ## or "4dm1n157r470r" for test
+  administrator_login_password = var.administrator_login_pw ## or "4-v3ry-53cr37-p455w0rd" for test
   tags                         = {
     environment = "production"
   }
@@ -431,6 +431,11 @@ resource "azurerm_recovery_services_vault" "key_vault_backup" {
   location            = var.location
   resource_group_name = azurerm_resource_group.RG.name
   sku                 = "Standard"
+
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 # Create a backup policy for virtual machines
@@ -447,6 +452,10 @@ resource "azurerm_backup_policy_vm" "vm_backup_policy" {
   retention_daily {
     count = 10
   }
+
+  lifecycle {
+    create_before_destroy = true
+  } 
 }
 
 # Protect web tier virtual machines with the backup policy
@@ -456,6 +465,10 @@ resource "azurerm_backup_protected_vm" "web_tier_vm_backup" {
   recovery_vault_name = azurerm_recovery_services_vault.key_vault_backup.name
   source_vm_id        = azurerm_windows_virtual_machine.web_tier_vm[count.index].id
   backup_policy_id    = azurerm_backup_policy_vm.vm_backup_policy.id
+
+   lifecycle {
+    create_before_destroy = true
+  }
 }
 
 # Protect database tier virtual machine with the backup policy
@@ -464,11 +477,31 @@ resource "azurerm_backup_protected_vm" "db_tier_vm_backup" {
   recovery_vault_name = azurerm_recovery_services_vault.key_vault_backup.name
   source_vm_id        = azurerm_windows_virtual_machine.db_tier_vm.id
   backup_policy_id    = azurerm_backup_policy_vm.vm_backup_policy.id
+
+   lifecycle {
+    create_before_destroy = true
+  }
 }
 
 
+# # -------------------------
+# # Azure Security Center
+# # -------------------------
 
-#Azure Security Center
-resource "azurerm_security_center_subscription_pricing" "security_center" {
-  tier                = "Standard"
+##Enable Azure Security Center
+resource "azurerm_security_center_subscription_pricing" "security_center_pricing" {
+tier          = "Standard"
+
+}
+
+## Configure Azure Security Center to monitor and manage the security posture of the infrastructure
+resource "azurerm_security_center_auto_provisioning" "security_center_auto_provisioning" {
+auto_provision = "On"
+
+}
+
+## Enable Azure Defender for Azure resources
+resource "azurerm_security_center_subscription_pricing" "azure_defender_pricing" {
+tier          = "Standard"
+
 }
