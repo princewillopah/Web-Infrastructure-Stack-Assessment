@@ -8,11 +8,58 @@ This repository contains Terraform configuration files to provision a web infras
 - Azure CLI installed and authenticated
 - A valid Azure subscription
 
+## Project Structure
+
+- **main.tf**: Defines the resources for the infrastructure.
+- **variables.tf**: Contains all the variable definitions used in `main.tf`.
+- **outputs.tf**: Specifies the output values to be displayed after the infrastructure is provisioned.
+
+**Note:** The `provider.tf` and `terraform.tfvars` files, which hold the credentials and configuration to connect to Azure, are not included in this repository. These files should be created locally with your specific credentials and configuration.
+
+## Example `provider.tf`
+
+Below is an example of a `provider.tf` file using dummy credentials. Replace the placeholders with your actual Azure credentials.
+
+```hcl
+provider "azurerm" {
+  features = {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+
+  subscription_id = "your-subscription-id"
+  client_id       = "your-client-id"
+  client_secret   = "your-client-secret"
+  tenant_id       = "your-tenant-id"
+}
+```
+
+## Example terraform.tfvars
+
+```hcl
+location              = "East US"
+resource_group_name   = "my-resource-group"
+vnet_address_space    = "10.0.0.0/16"
+web_tier_subnet       = "10.0.1.0/24"
+db_tier_subnet        = "10.0.2.0/24"
+api_gateway_subnet    = "10.0.3.0/24"  # neccessary for best practice
+tags                  = {
+  environment = "production"
+  owner       = "your-name"
+}
+admin_u               = "your-admin-username"
+admin_pw              = "your-admin-password"
+
+
+```
+
+
 ## Steps to Deploy
 
 1. Clone the repository:
    ```
-   git clone https://github.com/princewillopah/Web-Infrastructure-Stack-Assessment.git
+   git clone https://github.com/princewillopah/Web-Infrastructure-Stack-Assessment
    cd Web-Infrastructure-Stack-Assessment
    ```
 
@@ -50,3 +97,5 @@ To destroy the infrastructure:
 ```
    terraform destroy
 ```
+
+## Due to some unforseening constraints and other factors, i could not transform the working code modules within my timeframes. 

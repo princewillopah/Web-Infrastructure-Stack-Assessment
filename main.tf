@@ -380,15 +380,30 @@ data "azurerm_client_config" "current" {}
 
 # Create an Azure Key Vault
 resource "azurerm_key_vault" "key_vault" {
-  name                        = "my-key-vault"
+  name                       = "my-key12345-vault123456"
   location                    = var.location
   resource_group_name         = azurerm_resource_group.RG.name
   tenant_id                   = data.azurerm_client_config.current.tenant_id ## var.tenant_id
-  sku_name                    = "standard"
+  sku_name                   = "standard"
+  # soft_delete_retention_days = 7
 
-  # Enable Azure Key Vault to be accessed by Azure Virtual Machines
-  enabled_for_deployment      = true
-  enabled_for_disk_encryption = true
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+
+    key_permissions = [
+      "Create",
+      "Get",
+    ]
+
+    secret_permissions = [
+      "Set",
+      "Get",
+      "Delete",
+      "Purge",
+      "Recover"
+    ]
+  }
 }
 
 # Store a secret in the Key Vault
@@ -405,3 +420,6 @@ resource "azurerm_key_vault_secret" "sql_database_connection_string" {
   value     = "Server=tcp:${azurerm_sql_server.sql_server.fully_qualified_domain_name};Database=${azurerm_sql_database.sql_database.name};User ID=sqladmin;Password=${azurerm_key_vault_secret.sql_server_password.value};Encrypt=True;"
   key_vault_id = azurerm_key_vault.key_vault.id
 }
+
+
+
