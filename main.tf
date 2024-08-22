@@ -421,5 +421,54 @@ resource "azurerm_key_vault_secret" "sql_database_connection_string" {
   key_vault_id = azurerm_key_vault.key_vault.id
 }
 
+### -------------------------
+### Backups
+### -------------------------
+
+# Create a Recovery Services vault
+resource "azurerm_recovery_services_vault" "key_vault_backup" {
+  name                = "my-key-vault-backup"
+  location            = var.location
+  resource_group_name = azurerm_resource_group.RG.name
+  sku                 = "Standard"
+}
+
+# Create a backup policy for virtual machines
+resource "azurerm_backup_policy_vm" "vm_backup_policy" {
+  name                = "vm-backup-policy"
+  resource_group_name = azurerm_resource_group.RG.name
+  recovery_vault_name = azurerm_recovery_services_vault.key_vault_backup.name
+
+  backup {
+    frequency = "Daily"
+    time      = "23:00"
+  }
+
+  retention_daily {
+    count = 10
+  }
+}
+
+# Protect web tier virtual machines with the backup policy
+resource "azurerm_backup_protected_vm" "web_tier_vm_backup" {
+  count               = 2
+  resource_group_name = azurerm_resource_group.RG.name
+  recovery_vault_name = azurerm_recovery_services_vault.key_vault_backup.name
+  source_vm_id        = azurerm_windows_virtual_machine.web_tier_vm[count.index].id
+  backup_policy_id    = azurerm_backup_policy_vm.vm_backup_policy.id
+}
+
+# Protect database tier virtual machine with the backup policy
+resource "azurerm_backup_protected_vm" "db_tier_vm_backup" {
+  resource_group_name = azurerm_resource_group.RG.name
+  recovery_vault_name = azurerm_recovery_services_vault.key_vault_backup.name
+  source_vm_id        = azurerm_windows_virtual_machine.db_tier_vm.id
+  backup_policy_id    = azurerm_backup_policy_vm.vm_backup_policy.id
+}
 
 
+
+#Azure Security Center
+resource "azurerm_security_center_subscription_pricing" "security_center" {
+  tier                = "Standard"
+}
